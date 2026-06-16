@@ -30,12 +30,32 @@ Build search variants before calling connectors:
 
 ## Source Workflow
 
-1. Search Gmail for matching email subjects, senders, recipients, and thread text. Read matching emails only as needed for summary evidence, and if reading them changes their read/unread state, mark them unread again after extracting the needed context. Treat the sender as the email `From` person.
+1. Search Gmail through the Codex Gmail integration when it is available. Search matching email subjects, senders, recipients, and thread text. Read matching emails only as needed for summary evidence, and if reading them changes their read/unread state, mark them unread again after extracting the needed context. Treat the sender as the email `From` person.
 2. Search Slack only in channels and small group conversations connected to a channel context, such as public channels, accessible private channels, group channels, and relevant threads. Do not search one-to-one DMs unless the user explicitly asks for DMs and grants any required consent. Treat the sender as the Slack message author.
 3. Search Jira with Rovo Search or JQL. Fetch candidate issues before summarizing. Treat the sender as the reporter for issue-level facts and the comment author for comment-level facts.
-4. Search Bitbucket for matching pull requests, branches, commits, and comments. Treat the sender as the PR author, commit author, or comment author.
+4. Search Bitbucket for matching pull requests, branches, commits, and comments. Prefer a Bitbucket connector if one is available; otherwise use the Bitbucket API with the API token stored in the local macOS Keychain. Treat the sender as the PR author, commit author, or comment author.
 5. Deduplicate repeated facts across sources and prefer the newest, most direct evidence.
 6. Do not invent missing connector results. If a source is unavailable or inaccessible, say so in one short line only if it materially affects the summary.
+
+## Connector Access
+
+Use built-in Codex connectors before local fallbacks.
+
+For Gmail:
+
+- Try the Codex Gmail integration first.
+- Search before reading full messages.
+- Track which matching Gmail messages were unread before reading them, and mark those messages unread again after summarizing if the integration changes read state.
+- If the Gmail integration is unavailable, report Gmail as unavailable in the platform summary only when that absence materially affects the answer.
+
+For Bitbucket:
+
+- Try a Bitbucket connector first if one is available.
+- If no connector is available, use the Bitbucket Cloud API with the local macOS Keychain token.
+- Retrieve the token with `security find-generic-password` only into an environment variable or command substitution used immediately by the API call. Try likely service/account labels such as `bitbucket`, `bitbucket.org`, `api.bitbucket.org`, or `BITBUCKET_TOKEN` when the exact Keychain label is not known.
+- Never print, log, store, commit, or include the Bitbucket token in summaries.
+- If multiple Keychain items might match, inspect item metadata only; do not dump secret values while discovering the correct item.
+- Use read-only API calls for repository, PR, branch, commit, diff, and comment lookup unless the user explicitly asks for a write action.
 
 ## Evidence Rules
 
