@@ -33,7 +33,7 @@ Build search variants before calling connectors:
 1. Search Gmail through the Codex Gmail integration when it is available. Search matching email subjects, senders, recipients, and thread text. Read matching emails only as needed for summary evidence, and if reading them changes their read/unread state, mark them unread again after extracting the needed context. Treat the sender as the email `From` person.
 2. Search Slack through the Codex Slack integration when it is available. Search only in channels and small group conversations connected to a channel context, such as public channels, accessible private channels, group channels, and relevant threads. Do not search one-to-one DMs unless the user explicitly asks for DMs and grants any required consent. Treat the sender as the Slack message author.
 3. Search Jira through the Codex Atlassian/Jira integration when it is available, using Rovo Search or JQL as appropriate. Fetch candidate issues before summarizing. Treat the sender as the reporter for issue-level facts and the comment author for comment-level facts.
-4. Search Bitbucket for matching pull requests, branches, commits, and comments. Prefer a Bitbucket connector if one is available; otherwise delegate to the installed Bitbucket pull-request/repository workflow before using any manual API fallback. Treat the sender as the PR author, commit author, or comment author.
+4. Search Bitbucket for matching pull requests, branches, commits, and comments. Prefer a Bitbucket connector if one is available; otherwise frame the work as a concrete Bitbucket PR/repository lookup so any applicable local Bitbucket capability can trigger from its own metadata before using any manual API fallback. Treat the sender as the PR author, commit author, or comment author.
 5. Deduplicate repeated facts across sources and prefer the newest, most direct evidence.
 6. Do not invent missing connector results. If a source is unavailable or inaccessible, say so in one short line only if it materially affects the summary.
 
@@ -67,8 +67,8 @@ For Jira:
 For Bitbucket:
 
 - Try a Bitbucket connector first if one is available.
-- If no connector is available, use the installed Bitbucket pull-request/repository workflow for PR, branch, commit, diff, and comment lookup. Follow that workflow's credential discovery and reporting rules.
-- Use the Bitbucket Cloud API with the local macOS Keychain token only as a fallback when the dedicated Bitbucket workflow is unavailable or insufficient for the specific read-only lookup.
+- If no connector is available, phrase the next step as an ordinary Bitbucket PR/repository task, such as "look up PRs for this source branch", "read Bitbucket PR comments", "summarize commits on this Bitbucket branch", or "inspect a Bitbucket diff". Let the environment auto-trigger the applicable Bitbucket capability from that task description.
+- Use the Bitbucket Cloud API with the local macOS Keychain token only as a fallback when no Bitbucket capability is available or when it cannot answer the specific read-only lookup.
 - Retrieve any fallback token with `security find-generic-password` only into an environment variable or command substitution used immediately by the API call. Try likely service/account labels such as `bitbucket`, `bitbucket.org`, `api.bitbucket.org`, or `BITBUCKET_TOKEN` when the exact Keychain label is not known.
 - Never print, log, store, commit, or include the Bitbucket token in summaries.
 - If multiple Keychain items might match, inspect item metadata only; do not dump secret values while discovering the correct item.
