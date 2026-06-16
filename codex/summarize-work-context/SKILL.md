@@ -19,6 +19,15 @@ Accept any of these as the search target:
 
 If the user gives no time range, default to the last 30 days. Widen only when results are too sparse or the user asks for historical context.
 
+## Search Strategy
+
+Build search variants before calling connectors:
+
+- Use the original user input exactly.
+- For Jira keys and task names, also try hyphen, underscore, and spaced variants, such as `MKT-532`, `MKT_532`, and `MKT 532`.
+- When a ticket or PR title is discovered, search the exact title and normalized title variants with hyphens replaced by underscores and spaces.
+- For long titles, search the most distinctive phrase as well as the full title.
+
 ## Source Workflow
 
 1. Search Gmail for matching email subjects, senders, recipients, and thread text. Read matching emails only as needed for summary evidence, and if reading them changes their read/unread state, mark them unread again after extracting the needed context. Treat the sender as the email `From` person.
@@ -42,22 +51,24 @@ Include dates, issue keys, PR numbers, branch names, or channel names only when 
 
 ## Output Format
 
-Return at most 10 lines total. Prefer this shape:
+Return Markdown at most 10 lines total. Summarize per platform, not per comment or per raw search hit. Prefer one concise line per platform, combining the highest-signal facts and sender names for that platform.
 
-```text
-Summary: <one-line synthesis>
-Gmail | <sender> | <brief relevant fact>
-Slack | <sender> | <brief relevant fact>
-Jira | <sender> | <brief relevant fact>
-Bitbucket | <sender> | <brief relevant fact>
-Next: <one-line suggested follow-up, only when useful>
+```markdown
+**Summary:** <one-line synthesis>
+- **Gmail** | <sender(s)> | <brief relevant platform summary>
+- **Slack** | <sender(s)> | <brief relevant platform summary>
+- **Jira** | <sender(s)> | <brief relevant platform summary>
+- **Bitbucket** | <sender(s)> | <brief relevant platform summary>
+**Next:** <one-line suggested follow-up, only when useful>
 ```
 
-If there are many results, include only the highest-signal 4 to 8 evidence lines. If there are no useful results, return one line saying no relevant context was found and list the sources searched.
+If there are many results, collapse them into the most relevant platform-level summaries. Do not list every comment, email, Slack message, commit, or PR comment. If there are no useful results, return one Markdown line saying no relevant context was found and list the sources searched.
 
 ## Guardrails
 
 - Keep the final answer to 10 lines or fewer, even when many results exist.
+- Use Markdown for the final answer.
+- Summarize per platform and prioritize relevance over completeness.
 - Keep summaries factual and evidence-backed.
 - Do not expose private message contents beyond the minimum needed to summarize the task.
 - For Gmail, preserve the user's mailbox state: if a relevant unread email is opened/read during analysis, mark it unread again after summarizing.
