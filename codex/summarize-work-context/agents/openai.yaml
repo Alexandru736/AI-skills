@@ -1,0 +1,4 @@
+interface:
+  display_name: "Summarize Work Context"
+  short_description: "Summarize Gmail, Slack, Jira, and Bitbucket context"
+  default_prompt: "Use $summarize-work-context to summarize recent work context for a topic, task, or user."
