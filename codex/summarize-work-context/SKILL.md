@@ -31,8 +31,8 @@ Build search variants before calling connectors:
 ## Source Workflow
 
 1. Search Gmail through the Codex Gmail integration when it is available. Search matching email subjects, senders, recipients, and thread text. Read matching emails only as needed for summary evidence, and if reading them changes their read/unread state, mark them unread again after extracting the needed context. Treat the sender as the email `From` person.
-2. Search Slack only in channels and small group conversations connected to a channel context, such as public channels, accessible private channels, group channels, and relevant threads. Do not search one-to-one DMs unless the user explicitly asks for DMs and grants any required consent. Treat the sender as the Slack message author.
-3. Search Jira with Rovo Search or JQL. Fetch candidate issues before summarizing. Treat the sender as the reporter for issue-level facts and the comment author for comment-level facts.
+2. Search Slack through the Codex Slack integration when it is available. Search only in channels and small group conversations connected to a channel context, such as public channels, accessible private channels, group channels, and relevant threads. Do not search one-to-one DMs unless the user explicitly asks for DMs and grants any required consent. Treat the sender as the Slack message author.
+3. Search Jira through the Codex Atlassian/Jira integration when it is available, using Rovo Search or JQL as appropriate. Fetch candidate issues before summarizing. Treat the sender as the reporter for issue-level facts and the comment author for comment-level facts.
 4. Search Bitbucket for matching pull requests, branches, commits, and comments. Prefer a Bitbucket connector if one is available; otherwise use the Bitbucket API with the API token stored in the local macOS Keychain. Treat the sender as the PR author, commit author, or comment author.
 5. Deduplicate repeated facts across sources and prefer the newest, most direct evidence.
 6. Do not invent missing connector results. If a source is unavailable or inaccessible, say so in one short line only if it materially affects the summary.
@@ -47,6 +47,22 @@ For Gmail:
 - Search before reading full messages.
 - Track which matching Gmail messages were unread before reading them, and mark those messages unread again after summarizing if the integration changes read state.
 - If the Gmail integration is unavailable, report Gmail as unavailable in the platform summary only when that absence materially affects the answer.
+
+For Slack:
+
+- Try the Codex Slack integration first.
+- Use Slack search for broad topic matching, then read relevant channels or threads only when more context is needed.
+- Prefer public channels and channel-linked small groups. Search private channels only when accessible and appropriate; avoid one-to-one DMs unless the user explicitly requests DMs and grants any required consent.
+- Preserve source context such as channel name, thread, and message author when it helps identify the evidence.
+- If the Slack integration is unavailable, report Slack as unavailable in the platform summary only when that absence materially affects the answer.
+
+For Jira:
+
+- Try the Codex Atlassian/Jira integration first.
+- Use Rovo Search for broad matching unless the user asks for JQL or the task needs precise issue filtering.
+- Use JQL for exact issue keys, project/status filters, assignee/reporter searches, and date-bounded issue searches.
+- Fetch issue details before summarizing so status, reporter, assignee, comments, and descriptions are attributed correctly.
+- If the Jira integration is unavailable, report Jira as unavailable in the platform summary only when that absence materially affects the answer.
 
 For Bitbucket:
 
